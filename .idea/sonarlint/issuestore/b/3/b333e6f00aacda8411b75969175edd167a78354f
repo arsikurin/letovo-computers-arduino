@@ -1,0 +1,6 @@
+
+P	cpp:S5416(";"using" should be preferred to "typedef" for type aliasing.(Ÿ ı¹
+@	cpp:S3642)"&Replace this "enum" with "enum class".(ÎÙã¾ùÿÿÿÿ
+U	cpp:S5416)";"using" should be preferred to "typedef" for type aliasing.(ÎÙã¾ùÿÿÿÿ
+[	cpp:S3539:"ARemove this access specifier; it does not affect any declaration.(ĞòÚÚüÿÿÿÿ
+I	cpp:S17097"/Add the "explicit" keyword to this constructor.(ı×ÚŞüÿÿÿÿ
