@@ -1,0 +1,17 @@
+
+?	cpp:S1117""*declaration shadows a field of 'BlinkTask'(Ğšì
+?	cpp:S1117""*declaration shadows a field of 'BlinkTask'(Ğšì
+?	cpp:S1117""*declaration shadows a field of 'BlinkTask'(Ğšì
+?	cpp:S1117""*declaration shadows a field of 'BlinkTask'(Ğšì
+“	cpp:S61912"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(×ÁÜ½ûÿÿÿÿ
+“	cpp:S61914"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(„¢¢Óøÿÿÿÿ
+D	cpp:S1117R"*declaration shadows a field of 'BlinkTask'(’Öäùÿÿÿÿ
+	cpp:S6191a"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(—­ "
+	cpp:S6191c"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(úš„o
+	cpp:S6191m"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(úš„o
+	cpp:S6191o"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(—­ "
+;	cpp:S11109"!Remove these useless parentheses.(˜Ò¤€ÿÿÿÿÿ
+;	cpp:S1110="!Remove these useless parentheses.(ô÷­Œÿÿÿÿÿ
+6	cpp:S1110A"!Remove these useless parentheses.(‰Ø¥ü
+6	cpp:S1110F"!Remove these useless parentheses.(åİ©†
+A	cpp:S5827]"'Replace the redundant type with "auto".(“·½Üÿÿÿÿÿ

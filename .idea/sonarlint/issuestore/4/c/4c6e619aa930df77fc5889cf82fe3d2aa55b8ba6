@@ -1,0 +1,10 @@
+
+v	cpp:S3230)"aDo not assign data members in a constructor. Initialize member "_pinA" in an initialization list.(ÑñÄ×
+{	cpp:S3230*"aDo not assign data members in a constructor. Initialize member "_pinB" in an initialization list.(¥²àïûÿÿÿÿ
+}	cpp:S3230+"cDo not assign data members in a constructor. Initialize member "_pullUp" in an initialization list.(Ëßñıÿÿÿÿ
+~	cpp:S3230,"dDo not assign data members in a constructor. Initialize member "_stateCW" in an initialization list.(ÉÊıÍıÿÿÿÿ
+z	cpp:S3230-"eDo not assign data members in a constructor. Initialize member "_stateCCW" in an initialization list.(¥ÎŠÿ
+|	cpp:S3230."gDo not assign data members in a constructor. Initialize member "_onRotation" in an initialization list.(ú÷ˆÀ
+b	cpp:S5205'"MReplace this function pointer with a template parameter or a "std::function".(öŞ
+6	cpp:S1110("!Remove these useless parentheses.(†÷ó¨
+A	cpp:S5827Z"'Replace the redundant type with "auto".(ûÕâüÿÿÿÿ

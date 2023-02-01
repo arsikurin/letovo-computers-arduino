@@ -1,0 +1,6 @@
+
+X	cpp:S1235!"7'Task' has virtual functions but non-virtual destructor(‡ä»ÿÿÿÿÿ8‚šëÆ0
+K	cpp:S5414!"*Don't mix public and private data members.(‡ä»ÿÿÿÿÿ8ƒšëÆ0
+±	cpp:S3687;"”Check if the usage of the type "volatile unsigned long" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(§¿à8ƒšëÆ0
+±	cpp:S3687@"”Check if the usage of the type "volatile unsigned long" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(Ç©¤ë8ƒšëÆ0
+±	cpp:S3687E"”Check if the usage of the type "volatile unsigned long" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(·ª8ƒšëÆ0

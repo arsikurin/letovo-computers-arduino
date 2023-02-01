@@ -1,0 +1,10 @@
+
+}	cpp:S3230$"cDo not assign data members in a constructor. Initialize member "delayMs" in an initialization list.(šÃ†Âşÿÿÿÿ
+	cpp:S3230%"eDo not assign data members in a constructor. Initialize member "_callback" in an initialization list.(ßø–üÿÿÿÿ
+€	cpp:S3230&"fDo not assign data members in a constructor. Initialize member "followedBy" in an initialization list.(ÃÒÊĞşÿÿÿÿ
+b	cpp:S5205""MReplace this function pointer with a template parameter or a "std::function".(°ß„ğ
+6	cpp:S1110#"!Remove these useless parentheses.(‘Áˆë
+A	cpp:S58270"'Replace the redundant type with "auto".(–……óøÿÿÿÿ
+F	cpp:S1066B"1Merge this "if" statement with the enclosing one.(í£»°
+/	cpp:S4962;"Use the "nullptr" literal.(ÊìŠı
+/	cpp:S4962B"Use the "nullptr" literal.(í£»°

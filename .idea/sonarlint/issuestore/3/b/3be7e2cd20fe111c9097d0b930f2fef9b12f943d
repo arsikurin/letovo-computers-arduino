@@ -1,0 +1,16 @@
+
+W	cpp:S1235"='WiFiClient' has virtual functions but non-virtual destructor(¡±«œüÿÿÿÿ
+I	cpp:S1709 "/Add the "explicit" keyword to this constructor.(„½ÒÅúÿÿÿÿ
+I	cpp:S3471#"/Use "override" or "final" instead of "virtual".(İí½Ñøÿÿÿÿ
+D	cpp:S3471$"/Use "override" or "final" instead of "virtual".(º¾êı
+I	cpp:S3471)"/Use "override" or "final" instead of "virtual".(÷ä‹Òüÿÿÿÿ
+I	cpp:S3471*"/Use "override" or "final" instead of "virtual".(¬º§×üÿÿÿÿ
+D	cpp:S3471,"/Use "override" or "final" instead of "virtual".(³èÖé
+D	cpp:S3471-"/Use "override" or "final" instead of "virtual".(ÙÎ„Ÿ
+I	cpp:S3471."/Use "override" or "final" instead of "virtual".(ÔòŸ±ûÿÿÿÿ
+I	cpp:S3471/"/Use "override" or "final" instead of "virtual".(Şü‡‚ÿÿÿÿÿ
+D	cpp:S34711"/Use "override" or "final" instead of "virtual".(¢™”´
+I	cpp:S34712"/Use "override" or "final" instead of "virtual".(ËÕƒæùÿÿÿÿ
+D	cpp:S34713"/Use "override" or "final" instead of "virtual".(ÏŞÃ
+q	cpp:S17094"WReplace this conversion operator with a function or (C++11) add the "explicit" keyword.(êû¶€şÿÿÿÿ
+I	cpp:S34714"/Use "override" or "final" instead of "virtual".(êû¶€şÿÿÿÿ

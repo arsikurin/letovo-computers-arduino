@@ -1,0 +1,6 @@
+
+“	cpp:S61919"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(—íÛßşÿÿÿÿ
+“	cpp:S6191;"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(Ç¨¡”ıÿÿÿÿ
+x	cpp:S3230 "cDo not assign data members in a constructor. Initialize member "_outPin" in an initialization list.(…ş…İ
+;	cpp:S1110"!Remove these useless parentheses.(Õ†¦ùÿÿÿÿ
+A	cpp:S58275"'Replace the redundant type with "auto".(ã´‘íøÿÿÿÿ

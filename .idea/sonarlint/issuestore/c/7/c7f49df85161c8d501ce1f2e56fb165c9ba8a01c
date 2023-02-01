@@ -1,0 +1,7 @@
+
+M	cpp:S5028$"8Replace this macro by "const", "constexpr" or an "enum".(«Ëé§
+R	cpp:S5028%"8Replace this macro by "const", "constexpr" or an "enum".(µ®ˆšþÿÿÿÿ
+N	cpp:S1235'"9'Rotary' has virtual functions but non-virtual destructor(ä¨’Ÿ
+I	cpp:S3471="/Use "override" or "final" instead of "virtual".(ÿáÇ¹ýÿÿÿÿ
+¥	cpp:S3687B"ŠCheck if the usage of the type "volatile int" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(ÙÍ‚¸úÿÿÿÿ
+ 	cpp:S3687C"ŠCheck if the usage of the type "volatile int" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(­úß¿

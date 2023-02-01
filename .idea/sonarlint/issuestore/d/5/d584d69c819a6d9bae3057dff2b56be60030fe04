@@ -1,0 +1,12 @@
+
+R	cpp:S5028'"8Replace this macro by "const", "constexpr" or an "enum".(˜ÊÈıüÿÿÿÿ
+R	cpp:S5028("8Replace this macro by "const", "constexpr" or an "enum".(¡ğ“¤ûÿÿÿÿ
+R	cpp:S5028)"8Replace this macro by "const", "constexpr" or an "enum".(÷£úÆÿÿÿÿÿ
+R	cpp:S5028*"8Replace this macro by "const", "constexpr" or an "enum".(ÙæÃ×ıÿÿÿÿ
+M	cpp:S5028-"8Replace this macro by "const", "constexpr" or an "enum".(¢ó§
+7cpp:S125H"Remove the commented out code.(èûÏÿÿÿÿÿ
+Q	cpp:S1235/"<'Debouncer' has virtual functions but non-virtual destructor(— ›œ
+?	cpp:S5414/"*Don't mix public and private data members.(— ›œ
+I	cpp:S3471E"/Use "override" or "final" instead of "virtual".(øŞ²›ùÿÿÿÿ
+¥	cpp:S3687P"ŠCheck if the usage of the type "volatile int" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(îø£ºÿÿÿÿÿ
+ª	cpp:S3687Q"”Check if the usage of the type "volatile unsigned long" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(Şø‰ˆ

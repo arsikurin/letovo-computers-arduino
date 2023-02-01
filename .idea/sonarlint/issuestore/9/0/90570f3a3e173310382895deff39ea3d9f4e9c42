@@ -1,0 +1,14 @@
+
+i	cpp:S6191B"Ucompound assignment to object of volatile-qualified type 'volatile int' is deprecated(æß»[
+z	cpp:S3230#"`Do not assign data members in a constructor. Initialize member "_pin" in an initialization list.(Ü‰ö´ÿÿÿÿÿ
+~	cpp:S3230$"dDo not assign data members in a constructor. Initialize member "_onLevel" in an initialization list.(¡Ö”ûÿÿÿÿ
+€	cpp:S3230%"fDo not assign data members in a constructor. Initialize member "_onPressed" in an initialization list.(×ò»ìÿÿÿÿÿ
+	cpp:S3230&"gDo not assign data members in a constructor. Initialize member "_onReleased" in an initialization list.(œÁƒ¡ùÿÿÿÿ
+}	cpp:S3230'"cDo not assign data members in a constructor. Initialize member "_pullUp" in an initialization list.(Ëßñıÿÿÿÿ
+b	cpp:S5205!"MReplace this function pointer with a template parameter or a "std::function".(’ë‘ß
+;	cpp:S1110""!Remove these useless parentheses.(ÌííŸüÿÿÿÿ
+ 	cpp:S3687<"ŠCheck if the usage of the type "volatile int" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(â¿ıİ
+A	cpp:S5827J"'Replace the redundant type with "auto".(”Šßéüÿÿÿÿ
+4	cpp:S4962W"Use the "nullptr" literal.(á‹—×ıÿÿÿÿ
+4	cpp:S4962g"Use the "nullptr" literal.(ÁÌŞ¦şÿÿÿÿ
+ª	cpp:S3687h"”Check if the usage of the type "volatile unsigned long" is really appropriate here (for inter-thread synchronization, atomic types are more suited).(êµ‚

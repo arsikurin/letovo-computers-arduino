@@ -1,0 +1,11 @@
+
+7cpp:S125B"Remove the commented out code.(úÒüûÿÿÿÿ
+x	cpp:S3230 "cDo not assign data members in a constructor. Initialize member "_pwmPin" in an initialization list.(ó¨…
+	cpp:S3230!"eDo not assign data members in a constructor. Initialize member "direction" in an initialization list.(¹²É«úÿÿÿÿ
+v	cpp:S3230""aDo not assign data members in a constructor. Initialize member "value" in an initialization list.(ïÍ‡Û
+	cpp:S3230$"eDo not assign data members in a constructor. Initialize member "stepCount" in an initialization list.(÷ş“ıÿÿÿÿ
+;	cpp:S1110"!Remove these useless parentheses.(Ü˜àªıÿÿÿÿ
+5	cpp:S1905?"Remove this redundant cast.(¨‹ì’ÿÿÿÿÿ
+>	cpp:S5817K")This function should be declared "const".(ãôÙ
+A	cpp:S5827R"'Replace the redundant type with "auto".(ÉÓ ıÿÿÿÿ
+2cpp:S125a"Remove the commented out code.(°¹‘ü

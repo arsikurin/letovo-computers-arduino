@@ -1,0 +1,4 @@
+
+M	cpp:S5028"8Replace this macro by "const", "constexpr" or an "enum".(ìı·≠
+P	cpp:S5416(";"using" should be preferred to "typedef" for type aliasing.(ı—µ‘
+r	cpp:S1448*"]Class has 48 methods, which is greater than the 35 authorized. Split it into smaller classes.(ê®ƒ®

@@ -1,0 +1,6 @@
+
+L	cpp:S5028""8Replace this macro by "const", "constexpr" or an "enum".(ìŽ€Y
+R	cpp:S5028#"8Replace this macro by "const", "constexpr" or an "enum".(Ü‚÷«úÿÿÿÿ
+L	cpp:S5028%"8Replace this macro by "const", "constexpr" or an "enum".(±º“
+S	cpp:S1235'"9'Dimmer' has virtual functions but non-virtual destructor(Éà³Éûÿÿÿÿ
+D	cpp:S5414'"*Don't mix public and private data members.(Éà³Éûÿÿÿÿ

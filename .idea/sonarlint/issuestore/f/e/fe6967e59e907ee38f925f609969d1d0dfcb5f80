@@ -1,0 +1,10 @@
+
+1cpp:S125."Remove the commented out code.(Ó˜ÛS
+7cpp:S1259"Remove the commented out code.(Ô¡Ùµûÿÿÿÿ
+7cpp:S125A"Remove the commented out code.(™ï˜óşÿÿÿÿ
+w	cpp:S3230""cDo not assign data members in a constructor. Initialize member "_outPin" in an initialization list.(µàš
+	cpp:S3230#"gDo not assign data members in a constructor. Initialize member "_baseLength" in an initialization list.(ÆÊìøÿÿÿÿ
+6	cpp:S1110!"!Remove these useless parentheses.(óƒÛå
+A	cpp:S58272"'Replace the redundant type with "auto".(Ë¢˜øÿÿÿÿ
+<	cpp:S5827P"'Replace the redundant type with "auto".(á©’ú
+0	cpp:S1905P"Remove this redundant cast.(á©’ú

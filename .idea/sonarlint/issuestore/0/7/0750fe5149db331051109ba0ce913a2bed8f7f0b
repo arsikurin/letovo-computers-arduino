@@ -1,0 +1,10 @@
+
+“	cpp:S61914"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(×ÁÜ½ûÿÿÿÿ
+	cpp:S6191B"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(àÑ÷û
+	cpp:S6191J"ycompound assignment to object of volatile-qualified type 'volatile uint32_t' (aka 'volatile unsigned long') is deprecated(·”¸ª
+w	cpp:S3230 "cDo not assign data members in a constructor. Initialize member "_outPin" in an initialization list.(µàš
+|	cpp:S3230!"bDo not assign data members in a constructor. Initialize member "_value" in an initialization list.(Ç“åûÿÿÿÿ
+~	cpp:S3230""dDo not assign data members in a constructor. Initialize member "_counter" in an initialization list.(›Å€¿şÿÿÿÿ
+€	cpp:S3230#"fDo not assign data members in a constructor. Initialize member "upperLimit" in an initialization list.(ª¨ Ìùÿÿÿÿ
+5	cpp:S1110"!Remove these useless parentheses.(÷ÛÂ
+<	cpp:S5827="'Replace the redundant type with "auto".(Ù¾ëÖ

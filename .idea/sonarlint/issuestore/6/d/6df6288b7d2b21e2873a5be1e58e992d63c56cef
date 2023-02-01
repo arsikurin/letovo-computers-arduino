@@ -1,0 +1,5 @@
+
+7cpp:S125H"Remove the commented out code.(¼í§ßþÿÿÿÿ
+S	cpp:S1235!">'SoftPwmTask' has virtual functions but non-virtual destructor(Í‚‘Â
+?	cpp:S5414!"*Don't mix public and private data members.(Í‚‘Â
+D	cpp:S1709'"/Add the "explicit" keyword to this constructor.(Êä¿…
