@@ -1,6 +1,7 @@
-#include <iostream>
+#include "main.h"
+#include "config.h"
+
 #include <set>
-#include <algorithm>
 #include <vector>
 
 #include <Arduino.h>
@@ -10,8 +11,6 @@
 #include <WiFiNINA.h>
 #include <ArduinoMqttClient.h>
 #include <SoftTimer.h>
-
-#include "config.h"
 
 Servo servo;
 Rdm6300 rdm6300;
@@ -30,10 +29,10 @@ const static char *brokerPass = MQTT_PASS;
 const static char *wifiSSID = WIFI_SSID;
 const static char *wifiPass = WIFI_PASS;
 
-const static char *arduinoStreamTopic = "comps-mng/arduino/stream";
-const static char *arduinoWillTopic = "comps-mng/arduino/will";
-const static char *serverStreamTopic = "comps-mng/server/stream";
-const static char *serverWillTopic = "comps-mng/server/will";
+const static char *arduinoStreamTopic = "comps/arduino/stream";
+const static char *arduinoWillTopic = "comps/arduino/will";
+const static char *serverStreamTopic = "comps/server/stream";
+const static char *serverWillTopic = "comps/server/will";
 const static JSONVar
         willPayload(R"({"message":"arduino with RFID scanner disconnected","RFID":"","slots":"", status:3})");
 const static char *clientID = MQTT_CLIENT_ID;
@@ -61,74 +60,11 @@ std::set<const char *> buttonsPressedOld;
 std::vector<const char *> buttonsToUp;
 std::vector<const char *> buttonsToDown;
 
-enum class Status {
-    PLACED = 0, TAKEN = 1, SCANNED = 2, DISCONNECTED = 3
-};
-
-auto as_integer(Status const value)
--> typename std::underlying_type<Status>::type {
-    return static_cast<typename std::underlying_type<Status>::type>(value);
-}
-
-auto as_string(Status const value)
--> const char * {
-    switch (value) {
-        case Status::PLACED:
-            return "placed the computer";
-        case Status::TAKEN:
-            return "taken the computer";
-        case Status::SCANNED:
-            return "scanned new tag";
-        case Status::DISCONNECTED:
-            return "arduino with RFID scanner disconnected";
-    }
-}
-
-namespace SetSub {
-    std::vector<const char *> operator-(const std::set<const char *> &_first, const std::set<const char *> &_last) {
-        std::vector<const char *> _res;
-        std::set_difference(
-                _first.begin(), _first.end(),
-                _last.begin(), _last.end(),
-                std::inserter(_res, _res.begin())
-        );
-
-        return _res;
-    }
-}
-
-JSONVar createMessage(const char *tag, const String &slots, Status status);
-
-int sendMessage(const char *topic, const JSONVar &message);
-
-int sendWillMessage(const JSONVar &message);
-
-bool connectToBroker();
-
-void connectToInternet();
-
-static void openDoor(bool isOpen);
-
-void checkWiFiConnection(Task *me);
-
 Task checkWiFiConnectionTask(10000, checkWiFiConnection);
-
-void checkBrokerConnection(Task *me);
-
 Task checkBrokerConnectionTask(10000, checkBrokerConnection);
-
-void listenForRFID(Task *me);
-
 Task listenForRFIDTask(10, listenForRFID);
-
-void listenForButtons(Task *me);
-
 Task listenForButtonsTask(500, listenForButtons);
-
-void MQTTPoll(__attribute__((unused)) Task *me) { mqttClient.poll(); }
-
 Task MQTTPollTask(10, MQTTPoll);
-
 
 __attribute__((unused)) void setup() {
     Serial.begin(9600);
@@ -202,6 +138,54 @@ __attribute__((unused)) void setup() {
     }
 }
 
+void checkWiFiConnection(__attribute__((unused)) Task *me) {
+    if (WiFi.status() == WL_CONNECTED) return;
+
+    Serial.println("Lost connection to the Internet");
+    Serial.print("Wi-Fi status: ");
+    Serial.println(WiFi.status());
+
+    while (WiFi.status() != WL_CONNECTED) {
+        Serial.print("reconnecting to \"");
+        connectToInternet();
+        delay(2000);
+    }
+
+    Serial.print("Reconnected to the Internet. IP address: ");
+    Serial.println(WiFi.localIP());
+}
+
+void checkBrokerConnection(__attribute__((unused)) Task *me) {
+    if (mqttClient.connected()) return;
+
+    Serial.println("Lost connection to the broker");
+
+    while (!connectToBroker() && WiFi.status() == WL_CONNECTED) {
+        Serial.println("reconnecting...");
+        delay(1000);
+    }
+
+    if (WiFi.status() != WL_CONNECTED) return;
+
+    Serial.print("Reconnected to the broker. ClientID is \"");
+    Serial.print(clientID);
+    Serial.println("\"");
+}
+
+void listenForRFID(__attribute__((unused)) Task *me) {
+    if (rdm6300.get_new_tag_id()) {
+        strcpy(latestRFID, itoa(rdm6300.get_tag_id(), latestRFID, 16));
+        Serial.println(latestRFID);
+
+        sendWillMessage(createMessage(latestRFID, "", Status::DISCONNECTED));
+        sendMessage(arduinoStreamTopic, createMessage(latestRFID, "", Status::SCANNED));
+
+        openDoor(true);
+    }
+
+    digitalWrite(LED_PIN, int(rdm6300.get_tag_id()));
+}
+
 void listenForButtons(__attribute__((unused)) Task *me) {
     using namespace SetSub;
 
@@ -245,56 +229,9 @@ void listenForButtons(__attribute__((unused)) Task *me) {
     buttonsToDown.clear();
 }
 
-void listenForRFID(__attribute__((unused)) Task *me) {
-    if (rdm6300.get_new_tag_id()) {
-        strcpy(latestRFID, itoa(rdm6300.get_tag_id(), latestRFID, 16));
-        Serial.println(latestRFID);
+void MQTTPoll(__attribute__((unused)) Task *me) { mqttClient.poll(); }
 
-        sendWillMessage(createMessage(latestRFID, "", Status::DISCONNECTED));
-        sendMessage(arduinoStreamTopic, createMessage(latestRFID, "", Status::SCANNED));
-
-        openDoor(true);
-    }
-
-    digitalWrite(LED_PIN, int(rdm6300.get_tag_id()));
-}
-
-void checkWiFiConnection(__attribute__((unused)) Task *me) {
-    if (WiFi.status() == WL_CONNECTED) return;
-
-    Serial.println("Lost connection to the Internet");
-    Serial.print("Wi-Fi status: ");
-    Serial.println(WiFi.status());
-
-    while (WiFi.status() != WL_CONNECTED) {
-        Serial.print("reconnecting to \"");
-        connectToInternet();
-        delay(2000);
-    }
-
-    Serial.print("Reconnected to the Internet. IP address: ");
-    Serial.println(WiFi.localIP());
-}
-
-void checkBrokerConnection(__attribute__((unused)) Task *me) {
-    if (mqttClient.connected()) return;
-
-    Serial.println("Lost connection to the broker");
-
-    while (!connectToBroker() && WiFi.status() == WL_CONNECTED) {
-        Serial.println("reconnecting...");
-        delay(1000);
-    }
-
-    if (WiFi.status() != WL_CONNECTED) return;
-
-    Serial.print("Reconnected to the broker. ClientID is \"");
-    Serial.print(clientID);
-    Serial.println("\"");
-}
-
-auto connectToBroker()
--> bool {
+bool connectToBroker() {
     if (!mqttClient.connect(brokerHost, brokerPort)) {
         Serial.print("MOTT connection failed. Error no: ");
         Serial.println(mqttClient.connectError());
@@ -327,8 +264,7 @@ void connectToInternet() {
     WiFi.begin(wifiSSID, wifiPass);
 }
 
-auto createMessage(const char *tag, const String &slots, Status status)
--> JSONVar {
+JSONVar createMessage(const char *tag, const String &slots, Status status) {
     JSONVar messageObject;
     messageObject["message"] = as_string(status);
     messageObject["RFID"] = tag;
@@ -338,8 +274,7 @@ auto createMessage(const char *tag, const String &slots, Status status)
     return messageObject;
 }
 
-auto sendMessage(const char *topic, const JSONVar &message)
--> int {
+int sendMessage(const char *topic, const JSONVar &message) {
     if (!mqttClient.beginMessage(topic)) {
         Serial.println("Failed to begin message");
         return 0;
@@ -349,9 +284,8 @@ auto sendMessage(const char *topic, const JSONVar &message)
     return mqttClient.endMessage();
 }
 
-auto sendWillMessage(const JSONVar &message)
--> int {
-    if (!mqttClient.beginWill(arduinoWillTopic, true, 2)) {
+int sendWillMessage(const JSONVar &message) {
+    if (mqttClient.beginWill(arduinoWillTopic, true, 2)) {
         Serial.println("Failed to begin will message");
         return 0;
     }
@@ -360,7 +294,7 @@ auto sendWillMessage(const JSONVar &message)
     return mqttClient.endWill();
 }
 
-static void openDoor(bool isOpen) {
+void openDoor(bool isOpen) {
     if (isOpen)
         servo.write(0);
     else

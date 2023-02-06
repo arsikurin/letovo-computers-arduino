@@ -37,10 +37,6 @@ O
 lib/SoftTimer/src/SoftPwmTask.h,6/d/6df6288b7d2b21e2873a5be1e58e992d63c56cef
 O
 lib/SoftTimer/src/SoftTimer.cpp,4/9/49f33217f874cf5168802c2330bf5e3db7c682b5
-M
-lib/SoftTimer/src/SoftTimer.h,8/9/89e3705af1075551afa8cc7536405ef72d692728
-H
-lib/SoftTimer/src/Task.h,f/1/f1079229657ba8d548ec30b11769c53c81c8907e
 P
  lib/SoftTimer/src/TonePlayer.cpp,f/e/fe6967e59e907ee38f925f609969d1d0dfcb5f80
 N
@@ -53,5 +49,5 @@ b
 2.pio/libdeps/nano_33_iot/WiFiNINA/src/WiFiClient.h,3/b/3be7e2cd20fe111c9097d0b930f2fef9b12f943d
 \
 ,.pio/libdeps/nano_33_iot/WiFiNINA/src/WiFi.h,4/9/495a862a82822c282d8cbf7dc5ce1483b4738a58
-Z
-*.pio/libdeps/nano_33_iot/Servo/src/Servo.h,0/4/04e835cc089a0e4e33cae183b753978ef9ccd967
+M
+lib/SoftTimer/src/SoftTimer.h,8/9/89e3705af1075551afa8cc7536405ef72d692728
