@@ -1,5 +1,4 @@
 .pio
 CMakeListsPrivate.txt
 cmake-build-*/ 
-.env.development.local
 src/config.h
