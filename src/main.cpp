@@ -1,9 +1,3 @@
-#include "main.h"
-#include "config.h"
-
-#include <set>
-#include <vector>
-
 #include <Arduino.h>
 #include <Arduino_JSON.h>
 #include <rdm6300.h>
@@ -12,53 +6,37 @@
 #include <ArduinoMqttClient.h>
 #include <SoftTimer.h>
 
-Servo servo;
-Rdm6300 rdm6300;
-#ifdef USE_SSL
-WiFiSSLClient wifiClient;
+#if USE_SSL
+#include <ArduinoBearSSL.h>
+#include <ArduinoECCX08.h>
+#include <utility/ECCX08SelfSignedCert.h>
 #endif
-#ifndef USE_SSL
+
+#include "main.h"
+#include "config.h"
+
+static String statusMessage;
+
+unsigned int (*statusMessageLength)() = []() { return statusMessage.length(); };
+
+static std::set<const char *>    buttonsPressed;
+static std::set<const char *>    buttonsPressedOld;
+static std::vector<const char *> buttonsToUp;
+static std::vector<const char *> buttonsToDown;
+
+Servo      servo;
+Rdm6300    rdm6300;
 WiFiClient wifiClient;
-#endif
+#if !USE_SSL
 MqttClient mqttClient(wifiClient);
-
-const static char *brokerHost = MQTT_HOST;
-const static int brokerPort = MQTT_PORT;
-const static char *brokerUser = MQTT_USER;
-const static char *brokerPass = MQTT_PASS;
-const static char *wifiSSID = WIFI_SSID;
-const static char *wifiPass = WIFI_PASS;
-
-const static char *arduinoStreamTopic = "comps/arduino/stream";
-const static char *arduinoWillTopic = "comps/arduino/will";
-const static char *serverStreamTopic = "comps/server/stream";
-const static char *serverWillTopic = "comps/server/will";
-const static JSONVar
-        willPayload(R"({"message":"arduino with RFID scanner disconnected","RFID":"","slots":"", status:3})");
-const static char *clientID = MQTT_CLIENT_ID;
-
-const static int RDM6300_RX_PIN = 0;
-const static int SERVO_PIN = A0;
-const static int LED_PIN = LED_BUILTIN;
-
-const static int ROWS = 6;                          // num of rows
-const static int COLS = 5;                          // num of columns
-const static char *keys[ROWS][COLS] = {             // ID of each key
-        {"r1c1",  "r1c2",  "r1c3",  "r1c4",  "r1c5"},
-        {"r1c6",  "r1c7",  "r1c8",  "r1c9",  "r1c10"},
-        {"r1c11", "r1c12", "r1c13", "r1c14", "r1c15"},
-        {"r2c1",  "r2c2",  "r2c3",  "r2c4",  "r2c5"},
-        {"r2c6",  "r2c7",  "r2c8",  "r2c9",  "r2c10"},
-        {"r2c11", "r2c12", "r2c13", "r2c14", "r2c15"},
-};
-const static int rowPins[ROWS] = {2, 3, 4, 5, 6, 7};
-const static int colPins[COLS] = {8, 9, 10, 11, 12};
-
-char latestRFID[20] = "null";
-std::set<const char *> buttonsPressed;
-std::set<const char *> buttonsPressedOld;
-std::vector<const char *> buttonsToUp;
-std::vector<const char *> buttonsToDown;
+#endif
+#if USE_SSL
+//WiFiSSLClient wifiClient;
+BearSSLClient sslClient(wifiClient);
+MqttClient mqttClient(sslClient);
+const int keySlot = 0;  // Crypto chip slot to pick the key from
+const int certSlot = 8;  // Crypto chip slot to pick the certificate from
+#endif
 
 Task checkWiFiConnectionTask(10000, checkWiFiConnection);
 Task checkBrokerConnectionTask(10000, checkBrokerConnection);
@@ -67,69 +45,100 @@ Task listenForButtonsTask(500, listenForButtons);
 Task MQTTPollTask(10, MQTTPoll);
 
 __attribute__((unused)) void setup() {
+    // init serial
     Serial.begin(9600);
+    while (!Serial);
 
-    // init LED --------------------------------------------------------------------------------------------------------
+#if USE_SSL
+    Serial.println("Using the certificate from config.h...");
+    sslClient.setKey(PRIVATE_KEY, CERTIFICATE);
+
+     Instruct the SSL client to use the chosen ECCX08 slot for picking the private key
+     and set the hardcoded certificate as accompanying public certificate.
+    //sslClient.setEccCert();  // DER
+    //        bearClient.setEccSlot(
+    //                keySlot,
+    //                CLIENT_CERT);
+#endif
+
+    // init LED
     pinMode(LED_PIN, OUTPUT);
     digitalWrite(LED_PIN, HIGH);
 
-    // init keys listener ----------------------------------------------------------------------------------------------
-    for (int rowPin: rowPins) {
+    // init keys listener
+    for (uint8_t rowPin: ROW_PINS) {
         pinMode(rowPin, OUTPUT);
         digitalWrite(rowPin, HIGH);
     }
 
-    for (int colPin: colPins) {
+    for (uint8_t colPin: COL_PINS) {
         pinMode(colPin, INPUT_PULLUP);
     }
 
-    // init Servo ------------------------------------------------------------------------------------------------------
+    // init Servo
     pinMode(SERVO_PIN, OUTPUT);
     servo.attach(SERVO_PIN);
 
-    // connect to the Internet -----------------------------------------------------------------------------------------
-    if (WiFi.status() != WL_CONNECTED) {
-        Serial.print("Wi-Fi status: ");
-        Serial.println(WiFi.status());
-
-        while (WiFi.status() != WL_CONNECTED) {
-            Serial.print("connecting to \"");
-            connectToInternet();
-            delay(2000);
-        }
+    // connect to the Internet
+    statusMessage = "# connecting to " + String(wifiSSID);
+    while (WiFi.status() != WL_CONNECTED) {
+        connectToInternet();
+        delay(2000);
     }
-    Serial.print("Connected to the Internet. IP address: ");
+    Serial.print("\n## Connected to the Internet. IP address: ");
     Serial.println(WiFi.localIP());
 
-    // init the MQTT client & broker -----------------------------------------------------------------------------------
+    // init the MQTT broker & client and connect to the broker
     mqttClient.setId(clientID);
     mqttClient.setUsernamePassword(brokerUser, brokerPass);
 
+    statusMessage = "# connecting to the broker";
     while (!connectToBroker() && WiFi.status() == WL_CONNECTED) {
-        Serial.println("attempting to connect to the broker...");
         delay(1000);
     }
     if (WiFi.status() != WL_CONNECTED) {
-        Serial.println("Wi-Fi connection lost during setup. Restarting...");
+        Serial.println("## Wi-Fi connection lost during setup. Restarting...");
         NVIC_SystemReset();
     }
 
     sendWillMessage(willPayload);
 
     mqttClient.onMessage([](__attribute__((unused)) int messageSize) {
-        Serial.print("\nGot a message on topic: ");
+        Serial.print("## Got a message on topic: ");
         Serial.println(mqttClient.messageTopic());
 
         while (mqttClient.available()) {
-            Serial.println(mqttClient.readString());
+            JSONVar message = JSON.parse(mqttClient.readString());
+
+            switch (static_cast<Status::Value>(int(message["status"]))) {
+                case Status::Value::ERROR_OCCUR:
+                    Status::handleErrorOccur(message);
+                    break;
+                case Status::Value::ERROR_RESOLVE:
+                    Status::handleErrorResolve(message);
+                    break;
+                case Status::Value::CONNECT:
+                    Status::handleConnect(message);
+                    break;
+                case Status::Value::DISCONNECT:
+                    Status::handleDisconnect(message);
+                    break;
+                case Status::Value::OPEN:
+                    Status::handleOpen(message);
+                    break;
+                default:
+                    Serial.println("[unknown status]: ");
+                    Serial.println(message);
+                    break;
+            }
         }
     });
 
-    // init RFID scanner -----------------------------------------------------------------------------------------------
+    // init RFID scanner (RDM6300)
     rdm6300.begin(RDM6300_RX_PIN);
-    Serial.println("\nlistening for RFID tag nearby...");
+    Serial.println("# listening for RFID tags nearby...");
 
-    // add Tasks -------------------------------------------------------------------------------------------------------
+    // add Tasks to the scheduler (SoftTimer)
     for (Task *task: {
             &checkWiFiConnectionTask, &checkBrokerConnectionTask,
             &listenForRFIDTask, &listenForButtonsTask, &MQTTPollTask
@@ -141,86 +150,88 @@ __attribute__((unused)) void setup() {
 void checkWiFiConnection(__attribute__((unused)) Task *me) {
     if (WiFi.status() == WL_CONNECTED) return;
 
-    Serial.println("Lost connection to the Internet");
-    Serial.print("Wi-Fi status: ");
-    Serial.println(WiFi.status());
+    Serial.println("## Lost connection to the Internet");
 
+    statusMessage = "# reconnecting to " + String(wifiSSID);
     while (WiFi.status() != WL_CONNECTED) {
-        Serial.print("reconnecting to \"");
         connectToInternet();
         delay(2000);
     }
 
-    Serial.print("Reconnected to the Internet. IP address: ");
+    Serial.print("\n## Reconnected to the Internet. IP address: ");
     Serial.println(WiFi.localIP());
 }
 
 void checkBrokerConnection(__attribute__((unused)) Task *me) {
     if (mqttClient.connected()) return;
 
-    Serial.println("Lost connection to the broker");
+    Serial.println("## Lost connection to the broker");
 
+    statusMessage = "# reconnecting to the broker";
     while (!connectToBroker() && WiFi.status() == WL_CONNECTED) {
-        Serial.println("reconnecting...");
         delay(1000);
     }
 
     if (WiFi.status() != WL_CONNECTED) return;
 
-    Serial.print("Reconnected to the broker. ClientID is \"");
-    Serial.print(clientID);
-    Serial.println("\"");
+    Serial.print("## Reconnected to the broker. Client ID: ");
+    Serial.println(clientID);
 }
 
 void listenForRFID(__attribute__((unused)) Task *me) {
-    if (rdm6300.get_new_tag_id()) {
-        strcpy(latestRFID, itoa(rdm6300.get_tag_id(), latestRFID, 16));
+    if (uint32_t newTag = rdm6300.get_new_tag_id()) {
+        itoa(int(newTag), latestRFID, 16);
+
+        Serial.print("## New tag scanned: ");
         Serial.println(latestRFID);
 
-        sendWillMessage(createMessage(latestRFID, "", Status::DISCONNECTED));
-        sendMessage(arduinoStreamTopic, createMessage(latestRFID, "", Status::SCANNED));
-
-        openDoor(true);
+        sendWillMessage(createMessage(Status::Value::DISCONNECT));
+        sendMessage(arduinoStreamTopic, createMessage(Status::Value::SCAN));
     }
 
     digitalWrite(LED_PIN, int(rdm6300.get_tag_id()));
 }
 
 void listenForButtons(__attribute__((unused)) Task *me) {
-    using namespace SetSub;
+    using namespace SetSubtract;
 
+    for (uint8_t row = 0; row < ROWS; ++row) {
+        digitalWrite(ROW_PINS[row], LOW);
 
-    for (int i = 0; i < ROWS; i++) {
-        digitalWrite(rowPins[i], LOW);
-
-        for (int j = 0; j < COLS; j++) {
-            if (!digitalRead(colPins[j])) {
-                buttonsPressed.emplace(keys[i][j]);
+        for (uint8_t col = 0; col < COLS; ++col) {
+            if (!digitalRead(COL_PINS[col])) {
+                buttonsPressed.emplace(SLOT_IDS[row][col]);
             }
         }
 
-        digitalWrite(rowPins[i], HIGH);
+        digitalWrite(ROW_PINS[row], HIGH);
     }
 
-    buttonsToUp = buttonsPressedOld - buttonsPressed;
+    buttonsToUp   = buttonsPressedOld - buttonsPressed;
     buttonsToDown = buttonsPressed - buttonsPressedOld;
 
     if (!buttonsToDown.empty()) {
-        String slots;
+        String          slots;
         for (const char *button: buttonsToDown) {
-            slots += button + String(";");
+            slots += button + String(';');
         }
 
-        sendMessage(arduinoStreamTopic, createMessage(latestRFID, slots, Status::PLACED));
+        Serial.print("## Buttons pressed: ");
+        Serial.println(slots);
+
+        sendMessage(arduinoStreamTopic, createMessage(Status::Value::PLACE, slots.c_str()));
     }
 
     if (!buttonsToUp.empty()) {
-        String slots;
+        String          slots;
         for (const char *button: buttonsToUp) {
-            slots += button + String(";");
+            slots += button + String(';');
         }
 
-        sendMessage(arduinoStreamTopic, createMessage(latestRFID, slots, Status::TAKEN));
+        Serial.print("## Buttons released: ");
+        Serial.println(slots);
+
+        sendMessage(arduinoStreamTopic, createMessage(Status::Value::TAKE, slots.c_str()));
     }
 
     buttonsPressedOld = buttonsPressed;
@@ -232,25 +243,27 @@ void listenForButtons(__attribute__((unused)) Task *me) {
 void MQTTPoll(__attribute__((unused)) Task *me) { mqttClient.poll(); }
 
 bool connectToBroker() {
-    if (!mqttClient.connect(brokerHost, brokerPort)) {
-        Serial.print("MOTT connection failed. Error no: ");
-        Serial.println(mqttClient.connectError());
+    Serial.print('\r');
+    Serial.print(RepeatedString(" ", statusMessageLength()));
+    Serial.print("\rMOTT connection failed. Error no: ");
+    Serial.println(mqttClient.connectError());
+    Serial.print(statusMessage);
+    Serial.flush();
 
+    if (!mqttClient.connect(brokerHost, brokerPort)) {
         return false;
     }
-    Serial.print("Connected to the broker. ClientID: \"");
-    Serial.print(clientID);
-    Serial.println("\"");
 
-    for (const char *const &topic: {arduinoStreamTopic, serverStreamTopic, serverWillTopic}) {
+    Serial.print("\n## Connected to the broker. Client ID: ");
+    Serial.println(clientID);
+
+    for (const char *const &topic: {serverStreamTopic, serverWillTopic}) {
         if (mqttClient.subscribe(topic)) {
-            Serial.print("Subscribed to \"");
-            Serial.print(topic);
-            Serial.println("\"");
+            Serial.print("## Subscribed to ");
+            Serial.println(topic);
         } else {
-            Serial.print("Failed to subscribe to \"");
-            Serial.print(topic);
-            Serial.println("\"");
+            Serial.print("## Failed to subscribe to ");
+            Serial.println(topic);
         }
     }
 
@@ -258,35 +271,60 @@ bool connectToBroker() {
 }
 
 void connectToInternet() {
-    Serial.print(wifiSSID);
-    Serial.println("\"...");
+    Serial.print('\r');
+    Serial.print(RepeatedString(" ", statusMessageLength()));
+    Serial.print("\rWi-Fi status: ");
+    Serial.println(WiFi.status());
+    Serial.print(statusMessage);
+    Serial.flush();
 
     WiFi.begin(wifiSSID, wifiPass);
 }
 
-JSONVar createMessage(const char *tag, const String &slots, Status status) {
-    JSONVar messageObject;
-    messageObject["message"] = as_string(status);
-    messageObject["RFID"] = tag;
-    messageObject["slots"] = slots;
-    messageObject["status"] = as_integer(status);
+JSONVar createMessage(Status::Value status, const char *slots, const char *tag) {
+    JSONVar payloadObject;
 
-    return messageObject;
+#if USE_UNSAFE_POINTER_CAST
+    MQTTMessagePayload payload{
+            .message = Status::as_string(status),
+            .RFID    = tag,
+            .slots   = slots,
+            .status  = String(int(status)).c_str(),
+    };
+
+    // used to iterate over the members of the struct dynamically
+    // WARNING: could cause undefined behavior if the order of the members is changed
+    auto            pField = reinterpret_cast<const char **>(&payload);
+    for (const char *fieldName: memberNames) {
+        Serial.println(*pField);
+        payloadObject[fieldName] = *pField++;
+    }
+#endif
+#if !USE_UNSAFE_POINTER_CAST
+    payloadObject["status"]  = int(status);
+    payloadObject["message"] = Status::as_string(status);
+    payloadObject["RFID"]    = tag;
+    payloadObject["slots"]   = slots;
+#endif
+
+    return payloadObject;
 }
 
 int sendMessage(const char *topic, const JSONVar &message) {
-    if (!mqttClient.beginMessage(topic)) {
-        Serial.println("Failed to begin message");
+    if (!mqttClient.beginMessage(topic, true, 2)) {
+        Serial.println("## Failed to begin message");
+
         return 0;
     }
 
-    mqttClient.print(JSON.stringify(message));
+    mqttClient.print(message);
     return mqttClient.endMessage();
 }
 
 int sendWillMessage(const JSONVar &message) {
     if (mqttClient.beginWill(arduinoWillTopic, true, 2)) {
-        Serial.println("Failed to begin will message");
+        Serial.println("## Failed to begin will message");
+
         return 0;
     }
 
@@ -294,9 +332,53 @@ int sendWillMessage(const JSONVar &message) {
     return mqttClient.endWill();
 }
 
+// if isOpen is true, open the door, else close it
 void openDoor(bool isOpen) {
     if (isOpen)
         servo.write(0);
     else
         servo.write(90);
+}
+
+void Status::handleErrorOccur(const JSONVar &MQTTMessage) {
+    Status::ERROR_OCCURRED = true;
+
+    Serial.print("[");
+    Serial.print(Status::as_string(Status::Value::ERROR_OCCUR));
+    Serial.print("]: ");
+    Serial.println(MQTTMessage["message"]);
+}
+
+void Status::handleErrorResolve(const JSONVar &MQTTMessage) {
+    Status::ERROR_OCCURRED = false;
+
+    Serial.print("[");
+    Serial.print(Status::as_string(Status::Value::ERROR_RESOLVE));
+    Serial.print("]: ");
+    Serial.println(MQTTMessage["message"]);
+}
+
+void Status::handleOpen(const JSONVar &MQTTMessage) {
+    if (!Status::SERVER_CONNECTED || Status::ERROR_OCCURRED) return;
+
+    Serial.print("[");
+    Serial.print(Status::as_string(Status::Value::OPEN));
+    Serial.print("]: ");
+    Serial.println(MQTTMessage["message"]);
+
+    openDoor(true);
+}
+
+void Status::handleConnect(const JSONVar &MQTTMessage) {
+    Status::SERVER_CONNECTED = true;
+
+    Serial.println("[server connected]: ");
+    Serial.println(MQTTMessage["message"]);
+}
+
+void Status::handleDisconnect(const JSONVar &MQTTMessage) {
+    Status::SERVER_CONNECTED = false;
+
+    Serial.println("[server disconnected]: ");
+    Serial.println(MQTTMessage["message"]);
 }
